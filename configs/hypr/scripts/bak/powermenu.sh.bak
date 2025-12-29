@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# Options with icons (Requires a Nerd Font installed)
+# If you don't have icons, remove the weird box characters/icons below.
+option_1="󰗽   Logout"
+option_2="   Poweroff"
+option_3="   Reboot"
+option_4="   Suspend"
+option_5="󰜉   Cancel"
+
+
+# Rofi Theme Configuration
+# This makes it look like a small floating window with rounded corners
+# 'listview' settings prevent the "size 0" error
+ROFI_THEME='
+    window {
+        height:           220px;
+        width:            350px;
+        border:           2px;
+        border-radius:    15px;
+        padding:          20px;
+        location:         center;
+        anchor:           center;
+    }
+    mainbox {
+        children:         [ "listview" ];
+    }
+    listview {
+        columns:          1;
+        lines:            5;
+        fixed-height:     true;
+        scrollbar:        false;
+        spacing:          10px;
+        border:           0px;
+    }
+    element {
+        border-radius:    8px;
+        padding:          10px;
+    }
+'
+
+
+# Build the menu
+# We add explicit 'lines' and 'width' to prevent the 0-size calculation error
+CHOICE=$(echo -e "$option_1\n$option_2\n$option_3\n$option_4\n$option_5" | rofi -dmenu -i -p "Power" -theme-str 'window {width: 20em;} listview {lines: 5; fixed-height: true;} mainbox {children: [listview];}')
+
+case "$CHOICE" in
+  "$option_1")
+    hyprctl dispatch exit
+    ;;
+  "$option_2")
+    systemctl poweroff
+    ;;
+  "$option_3")
+    systemctl reboot
+    ;;
+  "$option_4")
+    # Locks the screen before suspending for security
+    # Checks if hyprlock is installed, otherwise tries swaylock, otherwise just suspends
+    if command -v hyprlock &> /dev/null; then
+        pidof hyprlock || hyprlock &
+        sleep 1 # clear race condition
+    elif command -v swaylock &> /dev/null; then
+        pidof swaylock || swaylock &
+        sleep 1
+    fi
+    systemctl suspend
+    ;;
+  *)
+    exit 0
+    ;;
+esac

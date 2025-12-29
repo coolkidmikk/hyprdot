@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=somewhere
+Author=mikk
+Copyright=GPL
+License=GPL
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+TranslationsDirectory=translations
+Theme-Id=somewhere
+Theme-API=2.0

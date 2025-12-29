@@ -1,0 +1,129 @@
+ {
+
+    "layer": "top",
+
+    "position": "top",
+
+    "height": 10,
+
+    "spacing": 5,
+
+
+    "modules-left": ["custom/launcher", "hyprland/workspaces"],
+
+    "modules-center": ["clock"],
+
+    "modules-right": [
+
+        "tray",
+
+        "custom/network",
+
+        "custom/power"
+
+    ],
+
+
+    "custom/launcher": {
+
+        "format": "  ",
+
+        "on-click": "bash $HOME/.config/hypr/scripts/app_launcher.sh",
+
+        "tooltip": false
+
+    },
+
+     
+
+    "clock": {
+
+        "format": "{:%I:%M:%S %p | %A}",
+
+        "interval": 1,
+
+        "tooltip-format": "{:%Y-%m-%d}"
+
+    },
+
+
+    "custom/power": {
+
+        "format": "  ",
+
+        "tooltip": false,
+
+        "on-click": "bash $HOME/.config/hypr/scripts/powermenu.sh"
+
+    },
+
+
+"custom/network": {
+    "exec": "$HOME/.config/hypr/scripts/netstatus.sh",
+    "return-type": "json",
+    "interval": 5,
+    "format": "{text}",
+    "tooltip": true,
+    "on-click": "sh -c 'nmcli networking | grep -q \"enabled\" && nmcli networking off || nmcli networking on'"
+},
+    
+
+    "tray": {
+
+        "icon-size": 17,
+
+        "spacing": 10
+
+    },
+
+    "hyprland/workspaces": {
+
+            "format": "{icon}",
+
+            "on-click": "activate",
+
+            "all-outputs": true,
+
+            "sort-by-number": true,
+
+            "on-scroll-up": "hyprctl dispatch workspace e+1",
+
+            "on-scroll-down": "hyprctl dispatch workspace e-1",
+
+            "format-icons": {
+
+                "1": "I",
+
+                "2": "II",
+
+                "3": "III",
+
+                "4": "IV",
+
+                "5": "V",
+
+                "6": "VI",
+
+                "7": "VII",
+
+                "8": "VIII",
+
+                "9": "IX",
+
+                "10": "X",
+
+                "urgent": "",
+
+                "default": "" 
+
+            },
+
+            "persistent-workspaces": {
+
+                "*": 5
+
+            }
+
+        }
+
+} 

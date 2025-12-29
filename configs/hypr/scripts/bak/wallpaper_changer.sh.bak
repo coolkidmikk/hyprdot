@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# --- Configuration ---
+WALLPAPER_DIR="${HOME}/Pictures/Wallpapers"
+CACHE_DIR="${HOME}/.cache/rofi-wallpaper-thumbs"
+ROFI_THEME="${HOME}/.config/rofi/themes/wallpaper-select.rasi"
+
+# Set your preferred transition here (e.g., "outer", "grow", "random")
+TRANSITION_TYPE="grow"
+TRANSITION_DURATION=0.5
+
+# Create Cache Dir if not exists
+if [ ! -d "$CACHE_DIR" ]; then
+    mkdir -p "$CACHE_DIR"
+fi
+
+# Ensure swww is running
+if ! pgrep -x "swww-daemon" > /dev/null; then
+    swww-daemon &
+    sleep 0.5
+fi
+
+# Function to generate thumbnails
+generate_thumbs() {
+    for img in "${WALLPAPER_DIR}"/*.{jpg,jpeg,png,gif}; do
+        [ -f "$img" ] || continue
+        filename=$(basename "$img")
+        thumb="${CACHE_DIR}/${filename}"
+        
+        # If thumb doesn't exist, create it (scale to 500px width)
+        if [ ! -f "$thumb" ]; then
+            convert "$img" -thumbnail 500x500 "$thumb"
+        fi
+        
+        # Output in Rofi format: Filename \0icon\x1f Path_to_Thumb
+        echo -en "${filename}\0icon\x1f${thumb}\n"
+    done
+}
+
+# --- Main Logic ---
+
+# 1. Select Image
+# -theme-str modifications:
+# 'mainbox { children: [listview]; }'     -> Hides the search bar
+# 'element-text { enabled: false; }'      -> Hides the filename text
+# 'element-icon { horizontal-align: 0.5; }' -> Centers the icon in the box
+SELECTED=$(generate_thumbs | rofi -dmenu \
+    -i \
+    -theme "${ROFI_THEME}" \
+    -p "Wallpaper: " \
+    -theme-str 'mainbox { children: [listview]; } element-text { enabled: false; } element-icon { horizontal-align: 0.5; }')
+
+if [ -z "$SELECTED" ]; then
+    exit 0
+fi
+
+# Extract just the filename (stripping any extra Rofi formatting)
+IMAGE_FILE="${SELECTED%%$'\n'*}"
+
+# 2. Apply Wallpaper Immediately (No second prompt)
+swww img "${WALLPAPER_DIR}/${IMAGE_FILE}" \
+    --transition-type "${TRANSITION_TYPE}" \
+    --transition-duration "${TRANSITION_DURATION}"

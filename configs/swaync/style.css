@@ -1,0 +1,223 @@
+/* =============================================================================
+   SWAYNC - Sharp & Minimal Tech Theme
+   ========================================================================== */
+
+/* --- Global Variables --- */
+:root {
+  --bg-color: rgba(16, 16, 16, 0.95);
+  --bg-lighter: rgba(32, 32, 32, 0.95);
+  --border-color: #cccccc; /* Nord Blue Accent */
+  --text-color: #FFFFFF;
+  --text-dim: #A0A0A0;
+  --urgent-color: #BF616A;
+  
+  --font-main: "JetBrains Mono";
+}
+
+* {
+  font-family: var(--font-main);
+  background-clip: border-box;
+}
+
+/* --- Control Center (The Main Panel) --- */
+.control-center {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 15px; /* Square */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  padding: 10px;
+}
+
+/* Background when CC is open (dimming) */
+.blank-window {
+  background: transparent;
+}
+
+/* --- Widgets Generic --- */
+.widget-title {
+  color: var(--border-color);
+  padding: 5px 10px;
+  margin-bottom: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.widget-title > button {
+  font-size: 12px;
+  color: var(--text-color);
+  text-shadow: none;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+  border-radius: 0px;
+  padding: 4px 10px;
+}
+
+.widget-title > button:hover {
+  background: var(--border-color);
+  color: #101010;
+}
+
+.widget-dnd {
+  margin: 0px 10px 10px 10px;
+  background: transparent;
+}
+
+.widget-dnd > switch {
+  background: var(--bg-lighter);
+  border-radius: 0px;
+  border: 1px solid #404040;
+}
+
+.widget-dnd > switch:checked {
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+}
+
+.widget-dnd > switch slider {
+  background: var(--text-color);
+  border-radius: 0px;
+}
+
+.widget-label {
+  margin: 10px;
+}
+
+.widget-label > label {
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+/* --- Media Player (Mpris) --- */
+.widget-mpris {
+  background: var(--bg-lighter);
+  border: 1px solid #303030;
+  padding: 0px;
+  margin: 10px;
+  border-radius: 0px;
+}
+
+.widget-mpris-player {
+  padding: 10px;
+  margin: 0;
+}
+
+.widget-mpris-title {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.widget-mpris-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* --- Volume & Backlight Sliders --- */
+.widget-volume, .widget-backlight {
+  background-color: var(--bg-lighter);
+  padding: 5px 10px;
+  margin: 5px 10px;
+  border-radius: 0px;
+  border: 1px solid #303030;
+}
+
+.widget-volume trough, .widget-backlight trough {
+  background: #404040;
+  border-radius: 0px;
+  min-height: 4px;
+}
+
+.widget-volume highlight, .widget-backlight highlight {
+  background: var(--border-color);
+  border-radius: 0px;
+}
+
+.widget-volume slider, .widget-backlight slider {
+  background: var(--text-color);
+  border-radius: 0px;
+  min-height: 10px;
+  min-width: 10px;
+}
+
+/* --- Notifications List --- */
+.notification-row {
+  outline: none;
+  margin: 5px 10px;
+}
+
+.notification-row:focus, .notification-row:hover {
+  background: transparent;
+}
+
+.notification {
+  border-radius: 15px; /* Square */
+  background: var(--bg-lighter);
+  border: 1px solid #cccccc
+  padding: 0px;
+  margin-bottom: 5px;
+  box-shadow: none;
+}
+
+.notification-content {
+  background: transparent;
+  padding: 10px;
+}
+
+.notification-default-action, .notification-action {
+  padding: 5px;
+  margin: 0;
+  box-shadow: none;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  transition: all 0.2s;
+}
+
+.notification-default-action:hover, .notification-action:hover {
+  background: #303030;
+}
+
+/* Text inside notification */
+.summary {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--border-color);
+}
+
+.body {
+  font-size: 13px;
+  color: var(--text-color);
+}
+
+.time {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-right: 5px;
+}
+
+/* Close Button */
+.close-button {
+  background: transparent;
+  color: var(--text-color);
+  border: none;
+  text-shadow: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 5px;
+}
+
+.close-button:hover {
+  color: var(--urgent-color);
+  background: transparent;
+}
+
+/* Floating Notifications (Popups on screen) */
+.floating-notifications {
+  background: transparent;
+}
+
+.floating-notifications .notification {
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}

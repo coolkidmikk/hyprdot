@@ -1,0 +1,16 @@
+font_size 14
+font_family JetBrains Mono
+cursor_trail 50
+cursor_trail_decay 0.1 0.4
+cursor_trail_start_threshold 2
+
+scrollbar_handle_opacity 0
+scrollbar_track_opacity 0
+scrollbar_track_hover_opacity 0
+confirm_os_windown_close 0
+
+
+# BEGIN_KITTY_THEME
+# Carbonfox
+include current-theme.conf
+# END_KITTY_THEME
