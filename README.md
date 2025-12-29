@@ -4,3 +4,4 @@ chmod +x install.sh
 ./install.sh
 ```
 Keybinding hint- ```Super + /```
+Put your wallpaper in ~/Pictures/Wallpapers/

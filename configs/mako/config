@@ -31,7 +31,7 @@ max-icon-size=48
 icon-location=left
 
 # --- Behavior ---
-default-timeout=5000
+default-timeout=2500
 ignore-timeout=0
 group-by=app-name
 
@@ -45,7 +45,7 @@ border-color=#cccccc
 
 [urgency=critical]
 border-color=#BF616A
-default-timeout=0
+default-timeout=4000
 
 [grouped]
 format=<b>%s</b>\n%b
