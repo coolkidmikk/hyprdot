@@ -3,7 +3,7 @@
 This just works for me! Minimal and fast.
 
 <details>
-#<summary><b>Preview</b></summary>
+<summary><h1>Preview</h1></summary>
 
 <p align="center">
   <img src="preview/1.png" width="45%" />
