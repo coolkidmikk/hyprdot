@@ -4,7 +4,7 @@
 #  CONFIGURATION
 # ==============================================================================
 WALLPAPER_DIR="${HOME}/Pictures/Wallpapers"
-CACHE_DIR="${HOME}/.cache/rofi-wallpaper-thumbs"
+CACHE_DIR="${HOME}/.cache/rofi-wallpaper-thumbs-vertical"
 TEMP_THEME_FILE="/tmp/rofi-wallpaper-select.rasi"
 
 # Transition config (swww)
@@ -14,7 +14,7 @@ TRANSITION_DURATION=2
 TRANSITION_FPS=60
 
 # ==============================================================================
-#  ROFI THEME GENERATION (Bottom Film Strip)
+#  ROFI THEME GENERATION (Operator Style - Perfect Fit)
 # ==============================================================================
 cat > "$TEMP_THEME_FILE" << EOF
 /*****----- Configuration -----*****/
@@ -22,7 +22,6 @@ configuration {
     modi:                       "drun";
     show-icons:                 true;
     drun-display-format:        "{name}";
-    /* SMOOTH SELECTION: Hover to select, Click to activate */
     hover-select:               true;
     me-select-entry:            "MousePrimary";
     me-accept-entry:            "!MousePrimary";
@@ -30,15 +29,13 @@ configuration {
 
 /*****----- Global Properties -----*****/
 * {
-    font:                       "JetBrains Mono 10";
+    font:                       "JetBrains Mono Bold 10";
     
     /* COLORS */
-    /* Background: Dark Grey (98% opacity for visibility) */
-    bg-col:                     #101010FA; 
-    /* Selection Background: Slightly lighter */
-    sel-bg:                     #202020FF;
-    /* Accent: White/Cyan mix */
-    border-col:                 #cccccc;
+    bg-col:                     #101010FA;   /* Dark Background */
+    sel-bg:                     #FFFFFF05;   /* Subtle highlight */
+    border-col:                 #cccccc;     /* Main Border */
+    separator-col:              #333333;     /* Vertical Separator Lines */
     
     background-color:           transparent;
     text-color:                 #FFFFFF;
@@ -48,25 +45,21 @@ configuration {
 
 /*****----- Main Window -----*****/
 window {
-    /* Anchored to the bottom */
-    location:                    south;
-    anchor:                      south;
+    location:                    center;
+    anchor:                      center;
     fullscreen:                  false;
     
-    /* Width: 98% (Almost full width) */
-    width:                       98%;
+    /* 
+       MATH EXPLANATION (FIXED):
+       Image Height: 400px
+       Window Border: 1px top + 1px bottom = 2px
+       TOTAL HEIGHT NEEDED: 402px
+    */
+    width:                       1006px;
+    height:                      402px; 
     
-    /* Height: Enough for 1 row of images */
-    height:                      240px; 
-    
-    x-offset:                    0px;
-    y-offset:                    -20px; /* Slight float from bottom edge */
-
-    /* Aesthetics: Square & Dark */
     border-radius:               0px;
     background-color:            @bg-col;
-    
-    /* BORDER: Small 1px border around the dock */
     border:                      1px;
     border-color:                @border-col;
     
@@ -76,19 +69,21 @@ window {
 /*****----- Listview -----*****/
 listview {
     enabled:                     true;
-    
-    /* HORIZONTAL LAYOUT (Film Strip) */
     layout:                      horizontal;
-    columns:                     1; 
-    lines:                       100; /* Allow many items in the horizontal line */
+    
+    columns:                     1;
+    lines:                       5; 
     
     cycle:                       true;
     dynamic:                     true;
     scrollbar:                   false;
     
-    /* Spacing between wallpapers */
-    spacing:                     20px;
-    padding:                     20px;
+    /* Ensure no spacing disrupts the height */
+    spacing:                     0px;
+    padding:                     0px;
+    
+    /* This prevents listview from trying to guess row height */
+    fixed-height:                false; 
     
     background-color:            transparent;
 }
@@ -97,26 +92,41 @@ listview {
 element {
     enabled:                     true;
     orientation:                 vertical;
-    padding:                     10px;
-    border-radius:               0px;
+    padding:                     0px;
+    margin:                      0px;
     cursor:                      pointer;
     background-color:            transparent;
     
-    /* Invisible 1px border default to keep size stable */
-    border:                      1px;
-    border-color:                transparent;
+    /* Force exact width */
+    width:                       200px;
+    
+    /* The "Line" between images (Right Border) */
+    border:                      0px 1px 0px 0px;
+    border-color:                @separator-col;
+}
+
+/* Remove the separator line from the very last item so it fits perfectly */
+element last {
+    border:                      0px;
 }
 
 element selected.normal {
     background-color:            @sel-bg;
-    /* BORDER: Only 1px */
-    border:                      1px;
+    z-index:                     1;
+    
+    /* Highlight Border - Note: Inset border might be safer to prevent sizing jumps, 
+       but if it works for you, keep it. */
+    border:                      2px;
     border-color:                @border-col;
 }
 
 element-icon {
-    /* Large thumbnails */
-    size:                        150px;
+    /* 
+       Icon size logic:
+       Rofi scales icons to fit within this square size.
+       Since your images are 200x400, setting size to 400px ensure height is filled.
+    */
+    size:                        400px; 
     cursor:                      inherit;
     horizontal-align:            0.5;
     vertical-align:              0.5;
@@ -124,7 +134,7 @@ element-icon {
 }
 
 element-text {
-    enabled:                     false; /* Text Hidden */
+    enabled:                     false;
 }
 EOF
 
@@ -132,20 +142,13 @@ EOF
 #  LOGIC
 # ==============================================================================
 
-# Create Cache Dir if not exists
+# Create Cache Dir
 if [ ! -d "$CACHE_DIR" ]; then
     mkdir -p "$CACHE_DIR"
 fi
 
-# Ensure swww is running
-if ! pgrep -x "swww-daemon" > /dev/null; then
-    swww-daemon &
-    sleep 0.5
-fi
-
 # Function to generate thumbnails
 generate_thumbs() {
-    # Check if directory is empty
     if [ -z "$(ls -A "$WALLPAPER_DIR")" ]; then
         echo "No wallpapers found in $WALLPAPER_DIR" >&2
         return
@@ -156,31 +159,28 @@ generate_thumbs() {
         filename=$(basename "$img")
         thumb="${CACHE_DIR}/${filename}"
         
-        # Create thumbnail if it doesn't exist
-        # Resize to 500x500
+        # Crop 200x400 strip from center
         if [ ! -f "$thumb" ]; then
-            convert "$img" -strip -resize 500x500^ -gravity center -extent 500x500 "$thumb"
+            convert "$img" -strip -resize x400^ -gravity center -crop 200x400+0+0 +repage "$thumb"
         fi
         
-        # Output for Rofi
         echo -en "${filename}\0icon\x1f${thumb}\n"
     done
 }
 
 # Run Rofi
 SELECTED=$(generate_thumbs | rofi -dmenu \
+    -name "rofi_wallpaper" \
+    -normal-window \
     -theme "$TEMP_THEME_FILE" \
     -i)
 
-# Exit if cancelled
 if [ -z "$SELECTED" ]; then
     exit 0
 fi
 
-# Extract filename
 IMAGE_FILE="${SELECTED%%$'\n'*}"
 
-# Apply Wallpaper
 swww img "${WALLPAPER_DIR}/${IMAGE_FILE}" \
     --transition-type "${TRANSITION_TYPE}" \
     --transition-pos "${TRANSITION_POS}" \

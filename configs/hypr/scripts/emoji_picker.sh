@@ -3,22 +3,39 @@
 # ==============================================================================
 #  CONFIGURATION
 # ==============================================================================
-TEMP_THEME_FILE="/tmp/rofi-clipboard.rasi"
+CACHE_DIR="${HOME}/.cache"
+EMOJI_FILE="${CACHE_DIR}/emojis.txt"
+TEMP_THEME_FILE="/tmp/rofi-emoji.rasi"
 
-# Check if cliphist is installed
-if ! command -v cliphist &> /dev/null; then
-    notify-send "Error" "cliphist not installed."
-    exit 1
+# Source: Official Unicode Consortium List
+EMOJI_SOURCE_URL="https://unicode.org/Public/emoji/15.0/emoji-test.txt"
+
+# Check dependencies
+if ! command -v curl &> /dev/null; then notify-send "Error" "curl is missing"; exit 1; fi
+if ! command -v wl-copy &> /dev/null; then notify-send "Error" "wl-copy is missing"; exit 1; fi
+
+# ==============================================================================
+#  1. FETCH EMOJI LIST
+# ==============================================================================
+if [ -f "$EMOJI_FILE" ]; then
+    if grep -q "404" "$EMOJI_FILE"; then rm "$EMOJI_FILE"; fi
+fi
+
+if [ ! -f "$EMOJI_FILE" ]; then
+    notify-send "Emoji Picker" "Downloading emoji list..."
+    curl -sL "$EMOJI_SOURCE_URL" | \
+    grep "; fully-qualified" | \
+    awk -F'# ' '{print $2}' | \
+    sed 's/E[0-9]\+\.[0-9]\+ //g' > "$EMOJI_FILE"
 fi
 
 # ==============================================================================
-#  ROFI THEME GENERATION
+#  2. ROFI THEME GENERATION
 # ==============================================================================
 cat > "$TEMP_THEME_FILE" << EOF
 /*****----- Configuration -----*****/
 configuration {
     show-icons:                 false;
-    /* SMOOTH SELECTION */
     hover-select:               true;
     me-select-entry:            "MousePrimary";
     me-accept-entry:            "!MousePrimary";
@@ -26,14 +43,18 @@ configuration {
 
 /*****----- Global Properties -----*****/
 * {
-    font:                       "JetBrains Mono Bold 11";
+    /* 
+       Global Font: Strict JetBrains Mono Nerd Font.
+       We do NOT add the emoji font here, to prevent it from overriding text.
+    */
+    font:                       "JetBrainsMono Nerd Font 10";
     
     /* COLORS */
-    bg-col:                     #101010FA;   /* Dark Background */
-    sel-bg:                     #202020FF;   /* Selection Background */
-    border-col:                 #cccccc;     /* Gray-white Border */
-    text-col:                   #FFFFFF;     /* White Text */
-    placeholder-col:            #606060;     /* Dimmed Text */
+    bg-col:                     #101010FA;
+    sel-bg:                     #202020FF;
+    border-col:                 #cccccc;
+    text-col:                   #FFFFFF;
+    dim-col:                    #606060;
     
     background-color:           transparent;
     text-color:                 @text-col;
@@ -46,19 +67,12 @@ window {
     location:                    center;
     anchor:                      center;
     fullscreen:                  false;
-    
-    /* Fixed Size */
-    width:                       600px;
-    height:                      500px;
-    
-    /* SHARP CORNERS */
+    width:                       380px;
+    height:                      420px;
     border-radius:               0px;
     background-color:            @bg-col;
-    
-    /* 1px BORDER */
     border:                      1px;
     border-color:                @border-col;
-    
     children:                    [ "inputbar", "listview" ];
 }
 
@@ -66,59 +80,52 @@ window {
 inputbar {
     enabled:                     true;
     spacing:                     10px;
-    padding:                     20px;
+    padding:                     12px;
     border:                      0px 0px 1px 0px;
     border-color:                #303030;
-    background-color:            transparent;
     children:                    [ "textbox-prompt-colon", "entry" ];
 }
 
 textbox-prompt-colon {
     enabled:                     true;
     expand:                      false;
-    str:                         " "; /* Clipboard Icon */
+    str:                         " "; 
     text-color:                  @border-col;
-    padding:                     0px 0px 0px 5px;
+    padding:                     0px 5px 0px 0px;
 }
 
 entry {
     enabled:                     true;
     text-color:                  @text-col;
     cursor:                      text;
-    placeholder:                 "Search Clipboard...";
-    placeholder-color:           @placeholder-col;
+    placeholder:                 "Search...";
+    placeholder-color:           @dim-col;
 }
 
 /*****----- Listview -----*****/
 listview {
     enabled:                     true;
     columns:                     1;
-    lines:                       10;
+    lines:                       8;
     cycle:                       true;
     dynamic:                     true;
-    
-    /* NO SCROLLBAR */
     scrollbar:                   false;
-    
     layout:                      vertical;
     spacing:                     5px;
-    padding:                     15px;
-    
+    padding:                     10px;
     background-color:            transparent;
-    cursor:                      "default";
 }
 
 /*****----- Elements -----*****/
 element {
     enabled:                     true;
-    spacing:                     10px;
-    padding:                     10px;
-    border-radius:               0px; /* Square */
+    padding:                     8px 10px;
+    border-radius:               0px;
     cursor:                      pointer;
     background-color:            transparent;
     text-color:                  @text-col;
-    
-    /* Invisible border to keep size stable */
+    orientation:                 horizontal;
+    spacing:                     15px; 
     border:                      1px;
     border-color:                transparent;
 }
@@ -126,37 +133,45 @@ element {
 element selected.normal {
     background-color:            @sel-bg;
     text-color:                  @border-col;
-    /* Sharp 1px Highlight Border */
     border:                      1px;
     border-color:                @border-col;
 }
 
+/* Enable Pango Markup to allow font switching inline */
 element-text {
     background-color:            transparent;
     text-color:                  inherit;
     cursor:                      inherit;
     vertical-align:              0.5;
     horizontal-align:            0.0;
+    markup:                      true;
 }
 EOF
 
 # ==============================================================================
-#  EXECUTION
+#  3. EXECUTION
 # ==============================================================================
 
-# 1. Capture Selection
-# We added -name "rofi_clipboard" in case you want to animate it later in Hyprland conf
-SELECTED=$(cliphist list | rofi -dmenu -name "rofi_clipboard" -theme "$TEMP_THEME_FILE" -p "Clipboard")
+# FORCE TWEMOJI FOR ICONS
+# We wrap the emoji in a span tag specifying the font family "Twemoji"
+# If "Twemoji" doesn't work, try "Twitter Color Emoji" (depends on how the system named it)
+SELECTED=$(awk '{ 
+    emoji=$1; 
+    $1=""; 
+    print "<span font=\"Twemoji Mozilla\" size=\"large\">" emoji "</span>" $0 
+}' "$EMOJI_FILE" | rofi -dmenu \
+    -markup-rows \
+    -name "rofi_emoji" \
+    -theme "$TEMP_THEME_FILE" \
+    -i \
+    -p "Emoji")
 
-# Exit if nothing selected (User pressed Escape)
 if [ -z "$SELECTED" ]; then
     exit 0
 fi
 
-# 2. Decode and Copy to Clipboard
-echo "$SELECTED" | cliphist decode | wl-copy
+# Clean up tags before pasting
+EMOJI=$(echo "$SELECTED" | sed 's/<[^>]*>//g' | awk '{print $1}')
 
-# 3. Auto-Paste (Simulate Ctrl+V)
-# Tiny delay to let the clipboard update before pasting
-sleep 0.1
+echo -n "$EMOJI" | wl-copy
 hyprctl dispatch sendshortcut CTRL, V, activewindow
