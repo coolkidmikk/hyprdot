@@ -48,8 +48,8 @@ window {
     fullscreen:                  false;
     
     /* Fixed Size */
-    width:                       600px;
-    height:                      500px;
+    width:                       400px;
+    height:                      600px;
     
     /* SHARP CORNERS */
     border-radius:               0px;
