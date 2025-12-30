@@ -1,13 +1,9 @@
 #!/bin/bash
 
 # ==============================================================================
-#  MYHYPRRICE AUTO-INSTALLER
-#  Styled & Structured
+#  HYPRDOT AUTO-INSTALLER
 # ==============================================================================
 
-# ------------------------------------------------------------------------------
-#  1. VISUAL UTILITIES (The "Symphony" Style Logic)
-# ------------------------------------------------------------------------------
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
@@ -28,13 +24,14 @@ show_banner() {
     clear
     echo -e "${BLUE}"
     cat << "EOF"
-   __  __      __  __                 
-  |  \/  |    |  \/  |                
-  | \  / |_ __| \  / | ___  ___  ___  
-  | |\/| | '__| |\/| |/ _ \/ __|/ _ \ 
-  | |  | | |  | |  | | (_) \__ \  __/ 
-  |_|  |_|_|  |_|  |_|\___/|___/\___| 
-                                      
+  _    _                      _       _   
+ | |  | |                    | |     | |  
+ | |__| |_   _ _ __  _ __  __| | ___ | |_ 
+ |  __  | | | | '_ \| '__|/ _` |/ _ \| __|
+ | |  | | |_| | |_) | |  | (_| | (_) | |_ 
+ |_|  |_|\__, | .__/|_|   \__,_|\___/ \__|
+          __/ | |                         
+         |___/|_|                         
       Hyprland Rice Installer
 EOF
     echo -e "${RESET}"
@@ -99,7 +96,6 @@ fi
 # ------------------------------------------------------------------------------
 step "Installing Official Packages"
 
-# Added rofi-emoji, ddcutil, gum (for better visuals if you want later)
 PKGS=(
     "hyprland" "hyprpicker" "hyprshot" "waybar" "rofi" "swww" 
     "kitty" "mako" "fastfetch" "nemo" "yazi" "btop" "cava" 
@@ -121,7 +117,6 @@ for PKG in "${PKGS[@]}"; do
 done
 
 step "Installing AUR Packages"
-# Removed xcursor-comix, added moc-pulse-svn
 AUR_PKGS=(
     "discord-ptb" "moc-pulse-svn" 
 )
@@ -139,16 +134,13 @@ done
 # ------------------------------------------------------------------------------
 step "Setting up Cursor Theme"
 
-# Logic: Check if asset exists -> Copy to /usr/share/icons -> Update index.theme
 if [ -d "assets/cursors/ComixCursors-White" ]; then
     info "Installing ComixCursors-White..."
     
-    # Remove old if exists to prevent conflicts
     if [ -d "/usr/share/icons/ComixCursors-White" ]; then
         sudo rm -rf /usr/share/icons/ComixCursors-White
     fi
 
-    # Copy new
     sudo cp -r assets/cursors/ComixCursors-White /usr/share/icons/
     
     # Update default theme file
@@ -165,7 +157,6 @@ fi
 # ------------------------------------------------------------------------------
 step "Deploying Configs"
 
-# Create directories
 xdg-user-dirs-update
 mkdir -p ~/Downloads ~/Documents ~/Music ~/Pictures ~/Videos ~/Templates ~/Public
 mkdir -p "$FONT_DIR"
@@ -192,8 +183,7 @@ done
 cp -r configs/* "$CONFIG_DIR/"
 ok "Standard dotfiles copied"
 
-# --- SPECIFIC FIX: MOC CONFIG ---
-# Move MOC from .config/moc (where we copied it) to ~/.moc
+# --- MOC FIX ---
 if [ -d "$CONFIG_DIR/moc" ]; then
     info "Relocating MOC config..."
     if [ -d "$HOME/.moc" ]; then rm -rf "$HOME/.moc"; fi
@@ -201,7 +191,7 @@ if [ -d "$CONFIG_DIR/moc" ]; then
     ok "MOC configured at ~/.moc"
 fi
 
-# --- SPECIFIC FIX: FONTS ---
+# --- FONTS FIX ---
 if [ -d "assets/fonts" ]; then
     cp -r assets/fonts/* "$FONT_DIR/"
     fc-cache -fv >> $LOG 2>&1
@@ -220,8 +210,6 @@ if lspci | grep -i "nvidia" > /dev/null; then
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         sudo pacman -S --needed --noconfirm nvidia-dkms nvidia-utils libva-nvidia-driver >> $LOG 2>&1
-        
-        # Apply Nvidia Env Vars
         cat <<EOF >> "$CONFIG_DIR/hypr/hyprland.conf"
 
 # NVIDIA AUTO-VARS
@@ -244,7 +232,53 @@ if ! groups | grep -q "i2c"; then
 fi
 
 # ------------------------------------------------------------------------------
-#  10. SHELL & SDDM
+#  10. SHELL (OH-MY-ZSH + PLUGINS)
+# ------------------------------------------------------------------------------
+step "Setting up ZSH Environment"
+
+# 1. Install Oh My Zsh (Unattended)
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    info "Installing Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended >> $LOG 2>&1
+    ok "Oh My Zsh installed"
+else
+    ok "Oh My Zsh already installed"
+fi
+
+# 2. Install Plugins (Autosuggestions + Syntax Highlighting)
+ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
+PLUGIN_DIR="$ZSH_CUSTOM/plugins"
+
+if [ ! -d "$PLUGIN_DIR/zsh-autosuggestions" ]; then
+    info "Cloning zsh-autosuggestions..."
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$PLUGIN_DIR/zsh-autosuggestions" >> $LOG 2>&1
+    ok "Autosuggestions installed"
+fi
+
+if [ ! -d "$PLUGIN_DIR/zsh-syntax-highlighting" ]; then
+    info "Cloning zsh-syntax-highlighting..."
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$PLUGIN_DIR/zsh-syntax-highlighting" >> $LOG 2>&1
+    ok "Syntax Highlighting installed"
+fi
+
+# 3. Apply Custom .zshrc
+# We do this LAST to ensure we overwrite the default OMZ template
+if [ -f "assets/zsh/.zshrc" ]; then
+    cp "assets/zsh/.zshrc" "$HOME/.zshrc"
+    ok "Custom .zshrc applied"
+else
+    warn "assets/zsh/.zshrc not found!"
+fi
+
+# 4. Change Default Shell
+if [ "$SHELL" != "/usr/bin/zsh" ]; then
+    info "Changing default shell to Zsh..."
+    sudo chsh -s /usr/bin/zsh "$USER"
+    ok "Shell changed to Zsh"
+fi
+
+# ------------------------------------------------------------------------------
+#  11. SDDM & FINALIZATION
 # ------------------------------------------------------------------------------
 step "Final Polish"
 
@@ -255,12 +289,6 @@ if [ -d "assets/sddm" ]; then
     sudo cp configs/sddm.conf /etc/sddm.conf
     sudo systemctl enable sddm >> $LOG 2>&1
     ok "SDDM theme installed"
-fi
-
-# ZSH
-if [ -f "assets/zsh/.zshrc" ]; then
-    cp "assets/zsh/.zshrc" "$HOME/.zshrc"
-    ok "ZSH config installed"
 fi
 
 # Wallpapers
