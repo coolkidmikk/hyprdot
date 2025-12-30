@@ -3,7 +3,7 @@
 This just works for me! Minimal and fast.
 
 <details>
-<summary><b>Preview (Click to Expand)</b></summary>
+#<summary><b>Preview</b></summary>
 
 <p align="center">
   <img src="preview/1.png" width="45%" />
