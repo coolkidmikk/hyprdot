@@ -1,0 +1,6 @@
+Theme = transparent-background
+MusicDir = "~/Music"
+Sort = FileName
+SavePlaylist = yes
+ShowFormat = no
+UseCursorSelection = yes 
