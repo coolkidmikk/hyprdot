@@ -1,76 +1,105 @@
 #!/bin/bash
 
 # ==============================================================================
-#  HYPRLAND AUTO-INSTALLER (ARCH LINUX)
-#  Updated for MOC & Emoji Support
+#  MYHYPRRICE AUTO-INSTALLER
+#  Styled & Structured
 # ==============================================================================
 
-# Colors for pretty output
-GREEN="\e[32m"
-YELLOW="\e[33m"
-RED="\e[31m"
-BLUE="\e[34m"
-CYAN="\e[36m"
-RESET="\e[0m"
+# ------------------------------------------------------------------------------
+#  1. VISUAL UTILITIES (The "Symphony" Style Logic)
+# ------------------------------------------------------------------------------
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+RESET='\033[0m'
 
-# Script variables
+# Helpers
+ok()   { echo -e "${GREEN}  ✓${RESET} $1"; }
+err()  { echo -e "${RED}  ✗${RESET} $1"; }
+warn() { echo -e "${YELLOW}  !${RESET} $1"; }
+info() { echo -e "${CYAN}  ➜${RESET} $1"; }
+step() { echo -e "\n${MAGENTA}::${RESET} ${BOLD}$1${RESET}"; }
+
+show_banner() {
+    clear
+    echo -e "${BLUE}"
+    cat << "EOF"
+   __  __      __  __                 
+  |  \/  |    |  \/  |                
+  | \  / |_ __| \  / | ___  ___  ___  
+  | |\/| | '__| |\/| |/ _ \/ __|/ _ \ 
+  | |  | | |  | |  | | (_) \__ \  __/ 
+  |_|  |_|_|  |_|  |_|\___/|___/\___| 
+                                      
+      Hyprland Rice Installer
+EOF
+    echo -e "${RESET}"
+}
+
+# ------------------------------------------------------------------------------
+#  2. VARIABLES & PATHS
+# ------------------------------------------------------------------------------
 LOG="install.log"
 CONFIG_DIR="$HOME/.config"
 ASSET_DIR="$HOME/Pictures/Wallpapers"
 FONT_DIR="$HOME/.local/share/fonts"
+CURSOR_DIR="/usr/share/icons"
 
-# Header
-clear
-echo -e "${BLUE}"
-echo "#########################################################"
-echo "        INITIALIZING HYPRLAND RICE INSTALLER"
-echo "#########################################################"
-echo -e "${RESET}"
-
-# 1. Check for sudo (but don't run the whole script as sudo)
-if [ "$EUID" -eq 0 ]; then 
-    echo -e "${RED}Please do not run this script as root!${RESET}"
+# ------------------------------------------------------------------------------
+#  3. PRE-FLIGHT CHECKS
+# ------------------------------------------------------------------------------
+if [ "$EUID" -eq 0 ]; then
+    err "Please do not run this script as root! Run it as a normal user."
     exit 1
 fi
 
-# 2. Update System first
-echo -e "${CYAN}[1/14] Updating system...${RESET}"
-echo "---------------------------------------------------------"
-sudo pacman -Syu --noconfirm | tee -a $LOG
+show_banner
+step "Initializing Installation"
+info "Log file: $LOG"
 
-# 3. AUR Helper Selection
-echo -e "\n${CYAN}[2/14] Setup AUR Helper${RESET}"
-echo "---------------------------------------------------------"
-echo -e "${YELLOW}[?] Which AUR helper do you want to use?${RESET}"
-select aur_helper in "paru" "yay"; do
-    case $aur_helper in
-        paru) 
-            HELPER="paru"
-            break
-            ;;
-        yay) 
-            HELPER="yay"
-            break
-            ;;
-        *) echo "Invalid option";;
-    esac
-done
-
-# Install AUR helper if missing
-if ! command -v $HELPER &> /dev/null; then
-    echo -e "${YELLOW}[*] Installing $HELPER...${RESET}"
-    sudo pacman -S --needed base-devel git --noconfirm | tee -a $LOG
-    git clone https://aur.archlinux.org/$HELPER.git
-    cd $HELPER
-    makepkg -si --noconfirm | tee -a $LOG
-    cd ..
-    rm -rf $HELPER
+# ------------------------------------------------------------------------------
+#  4. SYSTEM UPDATE
+# ------------------------------------------------------------------------------
+step "Updating System"
+if sudo pacman -Syu --noconfirm >> $LOG 2>&1; then
+    ok "System updated"
 else
-    echo -e "${GREEN}[OK] $HELPER is already installed.${RESET}"
+    err "System update failed. Check $LOG"
+    exit 1
 fi
 
-# 4. Install Official Packages
-# Added rofi-emoji and ddcutil based on your request
+# ------------------------------------------------------------------------------
+#  5. AUR HELPER SETUP
+# ------------------------------------------------------------------------------
+step "Configuring AUR Helper"
+if command -v yay &> /dev/null; then
+    HELPER="yay"
+    ok "yay is already installed"
+elif command -v paru &> /dev/null; then
+    HELPER="paru"
+    ok "paru is already installed"
+else
+    info "Installing yay..."
+    sudo pacman -S --needed base-devel git --noconfirm >> $LOG 2>&1
+    git clone https://aur.archlinux.org/yay.git >> $LOG 2>&1
+    cd yay
+    makepkg -si --noconfirm >> $LOG 2>&1
+    cd ..
+    rm -rf yay
+    HELPER="yay"
+    ok "yay installed"
+fi
+
+# ------------------------------------------------------------------------------
+#  6. PACKAGE INSTALLATION
+# ------------------------------------------------------------------------------
+step "Installing Official Packages"
+
+# Added rofi-emoji, ddcutil, gum (for better visuals if you want later)
 PKGS=(
     "hyprland" "hyprpicker" "hyprshot" "waybar" "rofi" "swww" 
     "kitty" "mako" "fastfetch" "nemo" "yazi" "btop" "cava" 
@@ -79,175 +108,176 @@ PKGS=(
     "qt6-5compat" "qt6-multimedia-ffmpeg" "qt6-svg" "qt6-virtualkeyboard"
     "sddm" "ttf-jetbrains-mono" "ttf-jetbrains-mono-nerd" "unzip" "unrar"
     "xdg-user-dirs" "zsh" "nano" "tree" "polkit-gnome" "jq" "ddcutil" 
-    "rofi-emoji"
+    "rofi-emoji" "gum"
 )
 
-echo -e "\n${CYAN}[3/14] Installing Official Packages${RESET}"
-echo "---------------------------------------------------------"
-sudo pacman -S --needed --noconfirm "${PKGS[@]}" | tee -a $LOG
-
-# --- Setup Standard Directories IMMEDIATELY ---
-echo -e "\n${CYAN}[4/14] Setting up User Directories${RESET}"
-echo "---------------------------------------------------------"
-xdg-user-dirs-update
-mkdir -p ~/Downloads ~/Documents ~/Music ~/Pictures ~/Videos ~/Templates ~/Public
-echo -e "${GREEN}[OK] Directories created.${RESET}"
-
-# 5. Custom Fonts (Twemoji for Emoji Picker)
-echo -e "\n${CYAN}[5/14] Installing Custom Fonts${RESET}"
-echo "---------------------------------------------------------"
-mkdir -p "$FONT_DIR"
-if [ -d "assets/fonts" ]; then
-    echo -e "${YELLOW}[*] Copying fonts...${RESET}"
-    cp -r assets/fonts/* "$FONT_DIR/"
-    echo -e "${GREEN}[OK] Fonts copied to $FONT_DIR.${RESET}"
-else
-    echo -e "${YELLOW}[!] No assets/fonts folder found. Skipping custom font install.${RESET}"
-fi
-
-# 6. Install AUR Packages
-# Added moc-pulse-svn
-AUR_PKGS=(
-    "discord-ptb" "xcursor-comix" "moc-pulse-svn" 
-)
-
-echo -e "\n${CYAN}[6/14] Installing AUR Packages${RESET}"
-echo "---------------------------------------------------------"
-$HELPER -S --needed --noconfirm "${AUR_PKGS[@]}" | tee -a $LOG
-
-# 7. Graphics & Monitor Setup
-echo -e "\n${CYAN}[7/14] Graphics & Monitor Setup${RESET}"
-echo "---------------------------------------------------------"
-if lspci | grep -i "nvidia" > /dev/null; then
-    echo -e "${GREEN}Nvidia GPU detected.${RESET}"
-    read -p "Do you want to install Nvidia drivers & Hyprland patches? (y/n): " nvidia_confirm
-    if [[ $nvidia_confirm == "y" || $nvidia_confirm == "Y" ]]; then
-        sudo pacman -S --needed --noconfirm nvidia-dkms nvidia-utils libva-nvidia-driver | tee -a $LOG
-        echo -e "\n# NVIDIA TWEAKS\nenv = LIBVA_DRIVER_NAME,nvidia\nenv = XDG_SESSION_TYPE,wayland\nenv = GBM_BACKEND,nvidia-drm\nenv = __GLX_VENDOR_LIBRARY_NAME,nvidia" >> nvidia_env.tmp
-    fi
-elif lspci | grep -i "intel" > /dev/null; then
-    echo -e "${GREEN}Intel GPU detected.${RESET}"
-fi
-
-# DDCUTIL Setup
-echo -e "${YELLOW}[*] Setting up Monitor Brightness Control (ddcutil)...${RESET}"
-if ! lsmod | grep -q "i2c_dev"; then
-    sudo modprobe i2c-dev
-fi
-if [ ! -f /etc/modules-load.d/i2c-dev.conf ]; then
-    echo "i2c-dev" | sudo tee /etc/modules-load.d/i2c-dev.conf > /dev/null
-fi
-sudo usermod -aG i2c $USER
-
-# 8. Backup Existing Configs
-echo -e "\n${CYAN}[8/14] Backing up existing configs${RESET}"
-echo "---------------------------------------------------------"
-BACKUP_DIR="$HOME/.rice-backup-$(date +%Y%m%d_%H%M%S)"
-mkdir -p "$BACKUP_DIR"
-DIRS_TO_BACKUP=("hypr" "waybar" "kitty" "mako" "fastfetch" "nemo" "nwg-look" "gtk-3.0" "gtk-4.0" "moc")
-
-for dir in "${DIRS_TO_BACKUP[@]}"; do
-    # Check .config first
-    if [ -d "$CONFIG_DIR/$dir" ]; then
-        mv "$CONFIG_DIR/$dir" "$BACKUP_DIR/$dir"
-        echo -e "Moved ~/.config/$dir to backup"
-    fi
-    # Check Home for .moc
-    if [ "$dir" == "moc" ] && [ -d "$HOME/.moc" ]; then
-        mv "$HOME/.moc" "$BACKUP_DIR/.moc"
-        echo -e "Moved ~/.moc to backup"
+# Install loop for better visual feedback
+for PKG in "${PKGS[@]}"; do
+    if sudo pacman -S --needed --noconfirm "$PKG" >> $LOG 2>&1; then
+        ok "$PKG"
+    else
+        err "$PKG failed to install"
     fi
 done
 
-# 9. Copy Configs
-echo -e "\n${CYAN}[9/14] Copying Dotfiles${RESET}"
-echo "---------------------------------------------------------"
-# Copy everything to .config first
-cp -r configs/* "$CONFIG_DIR/"
+step "Installing AUR Packages"
+# Removed xcursor-comix, added moc-pulse-svn
+AUR_PKGS=(
+    "discord-ptb" "moc-pulse-svn" 
+)
 
-# Handle MOC specifically (Move from .config/moc to ~/.moc)
+for PKG in "${AUR_PKGS[@]}"; do
+    if $HELPER -S --needed --noconfirm "$PKG" >> $LOG 2>&1; then
+        ok "$PKG"
+    else
+        err "$PKG failed to install"
+    fi
+done
+
+# ------------------------------------------------------------------------------
+#  7. CURSOR SETUP (MANUAL)
+# ------------------------------------------------------------------------------
+step "Setting up Cursor Theme"
+
+# Logic: Check if asset exists -> Copy to /usr/share/icons -> Update index.theme
+if [ -d "assets/cursors/ComixCursors-White" ]; then
+    info "Installing ComixCursors-White..."
+    
+    # Remove old if exists to prevent conflicts
+    if [ -d "/usr/share/icons/ComixCursors-White" ]; then
+        sudo rm -rf /usr/share/icons/ComixCursors-White
+    fi
+
+    # Copy new
+    sudo cp -r assets/cursors/ComixCursors-White /usr/share/icons/
+    
+    # Update default theme file
+    echo "[Icon Theme]" | sudo tee /usr/share/icons/default/index.theme > /dev/null
+    echo "Inherits=ComixCursors-White" | sudo tee -a /usr/share/icons/default/index.theme > /dev/null
+    
+    ok "Cursor theme copied and applied globally"
+else
+    warn "assets/cursors/ComixCursors-White not found! Skipping cursor setup."
+fi
+
+# ------------------------------------------------------------------------------
+#  8. DOTFILES & CONFIGS
+# ------------------------------------------------------------------------------
+step "Deploying Configs"
+
+# Create directories
+xdg-user-dirs-update
+mkdir -p ~/Downloads ~/Documents ~/Music ~/Pictures ~/Videos ~/Templates ~/Public
+mkdir -p "$FONT_DIR"
+
+# Backup function
+backup_config() {
+    local DIR=$1
+    if [ -d "$CONFIG_DIR/$DIR" ]; then
+        BACKUP="$HOME/.rice-backup/config/$DIR"
+        mkdir -p "$(dirname "$BACKUP")"
+        mv "$CONFIG_DIR/$DIR" "$BACKUP"
+        info "Backed up $DIR"
+    fi
+}
+
+mkdir -p "$HOME/.rice-backup"
+
+# Copy standard configs
+DIRS=("hypr" "waybar" "kitty" "mako" "fastfetch" "nemo" "nwg-look" "gtk-3.0" "gtk-4.0")
+for dir in "${DIRS[@]}"; do
+    backup_config "$dir"
+done
+
+cp -r configs/* "$CONFIG_DIR/"
+ok "Standard dotfiles copied"
+
+# --- SPECIFIC FIX: MOC CONFIG ---
+# Move MOC from .config/moc (where we copied it) to ~/.moc
 if [ -d "$CONFIG_DIR/moc" ]; then
-    echo -e "${YELLOW}[*] Setting up MOC configuration...${RESET}"
+    info "Relocating MOC config..."
     if [ -d "$HOME/.moc" ]; then rm -rf "$HOME/.moc"; fi
     mv "$CONFIG_DIR/moc" "$HOME/.moc"
-    echo -e "${GREEN}[OK] MOC config moved to ~/.moc${RESET}"
+    ok "MOC configured at ~/.moc"
 fi
 
-echo -e "${GREEN}[OK] Configs copied.${RESET}"
-
-# Apply Nvidia env if exists
-if [ -f nvidia_env.tmp ]; then
-    cat nvidia_env.tmp >> "$CONFIG_DIR/hypr/hyprland.conf"
-    rm nvidia_env.tmp
+# --- SPECIFIC FIX: FONTS ---
+if [ -d "assets/fonts" ]; then
+    cp -r assets/fonts/* "$FONT_DIR/"
+    fc-cache -fv >> $LOG 2>&1
+    ok "Custom fonts installed (Twemoji)"
+else
+    warn "No fonts found in assets/fonts"
 fi
 
-# Make scripts executable
-chmod +x "$CONFIG_DIR/hypr/scripts/"*.sh
-echo -e "${GREEN}[OK] Scripts made executable.${RESET}"
+# ------------------------------------------------------------------------------
+#  9. GPU & DRIVERS
+# ------------------------------------------------------------------------------
+step "GPU Setup"
+if lspci | grep -i "nvidia" > /dev/null; then
+    info "Nvidia GPU detected"
+    read -p "  Install Nvidia Drivers? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        sudo pacman -S --needed --noconfirm nvidia-dkms nvidia-utils libva-nvidia-driver >> $LOG 2>&1
+        
+        # Apply Nvidia Env Vars
+        cat <<EOF >> "$CONFIG_DIR/hypr/hyprland.conf"
 
-# 10. Copy Assets (Wallpapers)
-echo -e "\n${CYAN}[10/14] Copying Wallpapers${RESET}"
-echo "---------------------------------------------------------"
-mkdir -p "$ASSET_DIR"
-cp -r assets/wallpapers/* "$ASSET_DIR/"
-echo -e "${GREEN}[OK] Wallpapers installed.${RESET}"
-
-# 11. Notification Daemon Choice
-echo -e "\n${CYAN}[11/14] Notification Setup${RESET}"
-echo "---------------------------------------------------------"
-read -p "Use Mako (default) or install SwayNC? (m/s): " notif_choice
-if [[ $notif_choice == "s" || $notif_choice == "S" ]]; then
-    sudo pacman -S --needed --noconfirm swaync | tee -a $LOG
-    sed -i 's/exec-once = mako/exec-once = swaync/' "$CONFIG_DIR/hypr/hyprland.conf"
-    echo -e "${GREEN}[OK] Switched to SwayNC.${RESET}"
+# NVIDIA AUTO-VARS
+env = LIBVA_DRIVER_NAME,nvidia
+env = XDG_SESSION_TYPE,wayland
+env = GBM_BACKEND,nvidia-drm
+env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+EOF
+        ok "Nvidia drivers & env vars applied"
+    fi
+else
+    ok "No Nvidia GPU requiring special steps"
 fi
 
-# 12. SDDM Setup
-echo -e "\n${CYAN}[12/14] SDDM Theme Setup${RESET}"
-echo "---------------------------------------------------------"
+# DDCUTIL Permissions
+if ! groups | grep -q "i2c"; then
+    sudo usermod -aG i2c $USER
+    echo "i2c-dev" | sudo tee /etc/modules-load.d/i2c-dev.conf > /dev/null
+    ok "Added user to i2c group for brightness control"
+fi
+
+# ------------------------------------------------------------------------------
+#  10. SHELL & SDDM
+# ------------------------------------------------------------------------------
+step "Final Polish"
+
+# SDDM
 if [ -d "assets/sddm" ]; then
     sudo mkdir -p /usr/share/sddm/themes/silent
     sudo cp -r assets/sddm/* /usr/share/sddm/themes/silent/
     sudo cp configs/sddm.conf /etc/sddm.conf
-    sudo mkdir -p /etc/sddm.conf.d
-    echo -e "${GREEN}[OK] SDDM Theme installed.${RESET}"
-else
-    echo -e "${RED}[ERROR] SDDM assets not found!${RESET}"
+    sudo systemctl enable sddm >> $LOG 2>&1
+    ok "SDDM theme installed"
 fi
 
-# 13. Shell Setup
-echo -e "\n${CYAN}[13/14] Shell Setup (Zsh)${RESET}"
-echo "---------------------------------------------------------"
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-fi
-
-ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions 2>/dev/null
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting 2>/dev/null
-
-if [ -f "assets/zsh/a.zsh-theme" ]; then
-    cp "assets/zsh/a.zsh-theme" "$HOME/.oh-my-zsh/themes/"
-fi
+# ZSH
 if [ -f "assets/zsh/.zshrc" ]; then
     cp "assets/zsh/.zshrc" "$HOME/.zshrc"
-fi
-if [ "$SHELL" != "/usr/bin/zsh" ]; then
-    chsh -s /usr/bin/zsh
+    ok "ZSH config installed"
 fi
 
-# 14. Finalize
-echo -e "\n${CYAN}[14/14] Finalizing${RESET}"
-echo "---------------------------------------------------------"
-echo -e "${YELLOW}[*] Refreshing fonts...${RESET}"
-fc-cache -fv > /dev/null
+# Wallpapers
+mkdir -p "$ASSET_DIR"
+cp -r assets/wallpapers/* "$ASSET_DIR/"
+ok "Wallpapers copied"
 
-echo -e "${YELLOW}[*] Enabling SDDM...${RESET}"
-sudo systemctl enable sddm 2>/dev/null
+# Executable scripts
+chmod +x "$CONFIG_DIR/hypr/scripts/"*.sh
+ok "Scripts made executable"
 
-echo -e "${GREEN}"
-echo "#########################################################"
-echo "    INSTALLATION COMPLETE!"
-echo "    Please reboot your system."
-echo "#########################################################"
-echo -e "${RESET}"
+# ------------------------------------------------------------------------------
+#  COMPLETION
+# ------------------------------------------------------------------------------
+echo
+echo -e "${GREEN}#########################################################"
+echo "   INSTALLATION COMPLETE"
+echo "   Please reboot to apply group changes and start SDDM."
+echo "#########################################################${RESET}"
+echo
