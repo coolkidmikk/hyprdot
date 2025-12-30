@@ -261,6 +261,12 @@ if [ ! -d "$PLUGIN_DIR/zsh-syntax-highlighting" ]; then
     ok "Syntax Highlighting installed"
 fi
 
+# --- Copy custom theme to OMZ themes directory ---
+if [ -f "assets/zsh/a.zsh-theme" ]; then
+    cp "assets/zsh/a.zsh-theme" "$HOME/.oh-my-zsh/themes/a.zsh-theme"
+    ok "Custom theme 'a' installed to Oh My Zsh"
+fi
+
 # 3. Apply Custom .zshrc
 # We do this LAST to ensure we overwrite the default OMZ template
 if [ -f "assets/zsh/.zshrc" ]; then
@@ -283,9 +289,13 @@ fi
 step "Final Polish"
 
 # SDDM
-if [ -d "assets/sddm" ]; then
-    sudo mkdir -p /usr/share/sddm/themes/silent
-    sudo cp -r assets/sddm/* /usr/share/sddm/themes/silent/
+    
+if [ -d "assets/sddm/silent" ]; then
+    sudo mkdir -p /usr/share/sddm/themes
+    if [ -d "/usr/share/sddm/themes/silent" ]; then
+        sudo rm -rf /usr/share/sddm/themes/silent
+    fi
+    sudo cp -r assets/sddm/silent /usr/share/sddm/themes/
     sudo cp configs/sddm.conf /etc/sddm.conf
     sudo systemctl enable sddm >> $LOG 2>&1
     ok "SDDM theme installed"
