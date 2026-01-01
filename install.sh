@@ -1,40 +1,62 @@
 #!/bin/bash
 
-# ==============================================================================
-#  HYPRDOT AUTO-INSTALLER
-# ==============================================================================
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-RESET='\033[0m'
-
-# Helpers
-ok()   { echo -e "${GREEN}  ✓${RESET} $1"; }
-err()  { echo -e "${RED}  ✗${RESET} $1"; }
-warn() { echo -e "${YELLOW}  !${RESET} $1"; }
-info() { echo -e "${CYAN}  ➜${RESET} $1"; }
-step() { echo -e "\n${MAGENTA}::${RESET} ${BOLD}$1${RESET}"; }
-
 show_banner() {
+    local banner=(
+        "  _    _                      _        _   "
+        " | |  | |                    | |      | |  "
+        " | |__| |_   _ _ __  _ __  __| | ___ | |_ "
+        " |  __  | | | | '_ \| '__|/ _\` |/ _ \| __|"
+        " | |  | | |_| | |_) | |  | (_| | (_) | |_ "
+        " |_|  |_|\__, | .__/|_|   \__,_|\___/ \__|"
+        "          __/ | |                         "
+        "         |___/|_|                         "
+    )
+
+    local cols=$(tput cols)
+    local rows=$(tput lines)
+    local b_width=${#banner[0]}
+    local b_height=${#banner[@]}
+    local start_col=$(( (cols - b_width) / 2 ))
+    local start_row=$(( rows / 4 ))
+    local chars="!@#$%^&*()_+-=[]{}|;:,.<>?0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
     clear
-    echo -e "${BLUE}"
-    cat << "EOF"
-  _    _                      _       _   
- | |  | |                    | |     | |  
- | |__| |_   _ _ __  _ __  __| | ___ | |_ 
- |  __  | | | | '_ \| '__|/ _` |/ _ \| __|
- | |  | | |_| | |_) | |  | (_| | (_) | |_ 
- |_|  |_|\__, | .__/|_|   \__,_|\___/ \__|
-          __/ | |                         
-         |___/|_|                         
-      Hyprland Rice Installer
-EOF
-    echo -e "${RESET}"
+    tput civis
+
+    for (( i=0; i<40; i++ )); do
+        for (( r=0; r<b_height; r++ )); do
+            tput cup $((start_row + r)) $start_col
+            local line="${banner[$r]}"
+            for (( c=0; c<${#line}; c++ )); do
+                local char="${line:$c:1}"
+                if [[ "$char" == " " ]]; then
+                    printf " "
+                else
+                    if (( RANDOM % 40 < i )); then
+                        local r_val=$(( 120 + i * 3 ))
+                        local g_val=$(( 50 + i * 2 ))
+                        local b_val=255
+                        printf "\e[38;2;${r_val};${g_val};${b_val}m%s\e[0m" "$char"
+                    else
+                        printf "\e[38;5;236m%s\e[0m" "${chars:$(( RANDOM % ${#chars} )):1}"
+                    fi
+                fi
+            done
+        done
+        sleep 0.04
+    done
+
+    local sub="[ Initializing system protocols... ]"
+    local sub_col=$(( (cols - ${#sub}) / 2 ))
+    tput cup $((start_row + b_height + 2)) $sub_col
+    
+    for (( i=0; i<${#sub}; i++ )); do
+        printf "\e[1;36m%s\e[0m" "${sub:$i:1}"
+        sleep 0.02
+    done
+
+    echo -e "\n"
+    tput cnorm
 }
 
 # ------------------------------------------------------------------------------
@@ -102,9 +124,10 @@ PKGS=(
     "cliphist" "gammastep" "imagemagick" "mpv" "pamixer" 
     "pipewire-alsa" "pipewire-pulse" "networkmanager" "nwg-look"
     "qt6-5compat" "qt6-multimedia-ffmpeg" "qt6-svg" "qt6-virtualkeyboard"
-    "sddm" "ttf-jetbrains-mono" "ttf-jetbrains-mono-nerd" "unzip" "unrar"
+    "sddm" "ttf-jetbrains-mono" "ttf-jetbrains-mono-nerd" "adobe-source-han-sans-cn-fonts"
+    "adobe-source-han-sans-jp-fonts" "adobe-source-han-sans-kr-fonts" "unzip" "unrar"
     "xdg-user-dirs" "zsh" "nano" "tree" "polkit-gnome" "jq" "ddcutil" 
-    "rofi-emoji" "gum"
+    "rofi-emoji" "gum" "firefox"
 )
 
 # Install loop for better visual feedback
@@ -118,7 +141,7 @@ done
 
 step "Installing AUR Packages"
 AUR_PKGS=(
-    "discord-ptb" "moc-pulse-svn" 
+     "moc-pulse-svn" 
 )
 
 for PKG in "${AUR_PKGS[@]}"; do
@@ -191,7 +214,7 @@ if [ -d "$CONFIG_DIR/moc" ]; then
     ok "MOC configured at ~/.moc"
 fi
 
-# --- FONTS FIX ---
+# --- Emoji FONTS ---
 if [ -d "assets/fonts" ]; then
     cp -r assets/fonts/* "$FONT_DIR/"
     fc-cache -fv >> $LOG 2>&1
