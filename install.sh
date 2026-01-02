@@ -127,7 +127,7 @@ PKGS=(
     "sddm" "ttf-jetbrains-mono" "ttf-jetbrains-mono-nerd" "adobe-source-han-sans-cn-fonts"
     "adobe-source-han-sans-jp-fonts" "adobe-source-han-sans-kr-fonts" "unzip" "unrar"
     "xdg-user-dirs" "zsh" "nano" "tree" "polkit-gnome" "jq" "ddcutil" 
-    "rofi-emoji" "gum" "firefox"
+    "rofi-emoji" "gum" "firefox" "libva" "intel-media-driver" "libva-utils"
 )
 
 # Install loop for better visual feedback
@@ -141,7 +141,7 @@ done
 
 step "Installing AUR Packages"
 AUR_PKGS=(
-     "moc-pulse-svn" 
+     "moc-pulse-svn" "wl-screenrec"
 )
 
 for PKG in "${AUR_PKGS[@]}"; do
