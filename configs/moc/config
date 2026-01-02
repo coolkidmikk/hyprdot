@@ -4,3 +4,5 @@ Sort = FileName
 SavePlaylist = yes
 ShowFormat = no
 UseCursorSelection = yes 
+OnSongChange = "${HOME}/.moc/moc_notify.sh"
+Layout1 = directory(0,0,100%,100%)
