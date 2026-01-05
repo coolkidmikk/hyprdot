@@ -17,6 +17,9 @@ This just works for me! Minimal and fast.
 
 </details>
 
+> [!WARNING]
+> Use it at your own risk! Your current setup will be backed up in ~/.backup
+
 ## Installation
 
 ```
