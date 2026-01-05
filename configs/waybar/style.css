@@ -210,35 +210,3 @@
 
 }
 
-/* --- Custom Network Module (Phone Style, Waybar-safe) --- */
-
-#custom-network {
-    background: transparent;
-    padding: 0 12px;
-    margin: 0;
-    font-size: 18px;
-    color: #ffffff;
-}
-
-/* Internet OK */
-#custom-network.full {
-    color: #ffffff;
-}
-
-/* Limited / portal */
-#custom-network.limited,
-#custom-network.portal {
-    color: #f9e2af;
-}
-
-/* No internet / disconnected */
-#custom-network.none,
-#custom-network.unknown {
-    color: #c30010;
-}
-
-/* Hover effect (same idea as your example) */
-#custom-network:hover {
-    background: #ffffff;
-    color: #000000;
-}

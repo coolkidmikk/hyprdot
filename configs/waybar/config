@@ -4,7 +4,7 @@
 
     "position": "top",
 
-    "height": 10,
+    "height": 26,
 
     "spacing": 5,
 
@@ -17,7 +17,7 @@
 
         "tray",
 
-        "custom/network",
+        "network",
 
         "custom/power"
 
@@ -58,12 +58,12 @@
     },
 
 
-"custom/network": {
-    "exec": "$HOME/.config/hypr/scripts/netstatus.sh",
-    "return-type": "json",
-    "interval": 5,
-    "format": "{text}",
+"network": {
+    "format-wifi": "  {signalStrength}%",
+    "format-ethernet": "󰈀  Wired",
+    "format-disconnected": "󰖪  No Internet",
     "tooltip": true,
+    "tooltip-format": "{ifname}\n{ipaddr}\n{essid}",
     "on-click": "sh -c 'nmcli networking | grep -q \"enabled\" && nmcli networking off || nmcli networking on'"
 },
     
