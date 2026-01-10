@@ -1,0 +1,46 @@
+color-link default "#FFFFFF,#101010"
+
+color-link comment "#606060"
+
+color-link constant.string "#1793D1"
+
+color-link constant.number "#56b6c2"
+color-link constant.bool "#56b6c2"
+
+color-link identifier "#c678dd"
+color-link identifier.macro "#c678dd"
+
+color-link statement "#C30010"
+
+color-link symbol "#cccccc"
+color-link symbol.operator "#cccccc"
+color-link symbol.brackets "#cccccc"
+
+color-link type "#e6c07b"
+
+color-link preproc "#C30010"
+
+color-link special "#56b6c2"
+
+color-link error "bold #FFFFFF,#ff5555"
+color-link todo "bold #101010,#e6c07b"
+
+color-link statusline "#101010,#cccccc"
+
+color-link tabbar "#101010,#cccccc"
+
+color-link line-number "#606060,#101010"
+
+color-link current-line-number "#cccccc,#101010"
+
+color-link cursor-line "#202020"
+
+color-link color-column "#202020"
+
+color-link selection "#101010,#cccccc"
+
+color-link hlsearch "#101010,#1793D1"
+
+color-link diff-added "#50fa7b"
+color-link diff-modified "#e6c07b"
+color-link diff-deleted "#ff5555"
