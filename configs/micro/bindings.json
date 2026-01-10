@@ -1,8 +1,6 @@
 {
     "Alt-/": "lua:comment.comment",
     "CtrlUnderscore": "lua:comment.comment",
-    "Ctrl-z": "Redo",
-    "Ctrl-y": "Undo",
     "Alt-s": "Save,Quit"
     
 }
