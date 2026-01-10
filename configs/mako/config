@@ -12,13 +12,10 @@ anchor=top-right
 
 # --- Colors (ARGB format) ---
 background-color=#101010FA
-text-color=#ffffff
+text-color=#FFFFFF
 
 # --- PROGRESS BAR COLOR (Volume/Brightness) ---
-# This changes that "increasing blue" color.
-# Source options: 'source' (matches icon color) or a HEX code.
-# Here I set it to match your border color (Grey/Silver) or you can use #88C0D0 (Cyan)
-progress-color=#cccccc
+progress-color=#C30010
 
 # --- Borders ---
 border-size=1
