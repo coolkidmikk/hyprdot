@@ -1,152 +1,134 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # ==============================================================================
-#  CONFIGURATION
+#   CONFIGURATION
 # ==============================================================================
 TEMP_THEME_FILE="/tmp/rofi-powermenu.rasi"
 
-# Options (Nerd Fonts included directly in the strings)
-# Ensure you have a Nerd Font installed (like JetBrainsMono Nerd Font)
-logout="󰗽    Logout"
-poweroff="    Poweroff"
-reboot="    Reboot"
-suspend="    Suspend"
-cancel="󰜉    Cancel"
+# Get Uptime
+uptime=$(uptime -p | sed -e 's/up //g')
+
+# Icons (Nerd Font)
+shutdown=''
+logout='󰍃'
+reboot='󰜉'
+lock=''
+suspend='󰤄'
 
 # ==============================================================================
-#  ROFI THEME GENERATION (Vertical Monolith)
+#   ROFI THEME GENERATION
 # ==============================================================================
 cat > "$TEMP_THEME_FILE" << EOF
-/*****----- Configuration -----*****/
 configuration {
     show-icons:                 false;
-    /* SMOOTH SELECTION */
-    hover-select:               true;
-    me-select-entry:            "MousePrimary";
-    me-accept-entry:            "!MousePrimary";
 }
 
-/*****----- Global Properties -----*****/
 * {
-    font:                       "JetBrains Mono Bold 12";
-    
-    /* COLORS */
-    bg-col:                     #101010FA;  /* Dark Background */
-    sel-bg:                     #202020FF;  /* Lighter Selection */
-    border-col:                 #cccccc;    /* gray-white Border */
-    text-col:                   #FFFFFF;    /* White Text */
-    
-    background-color:           transparent;
-    text-color:                 @text-col;
-    margin:                     0px;
-    padding:                    0px;
+    background:     #101010FA;
+    background-alt: #ffffff10;
+    foreground:     #FFFFFF;
+    selected:       #FFFFFF;
+    border-col:     #cccccc;
+    font:           "JetBrainsMono Nerd Font 10";
 }
 
-/*****----- Main Window -----*****/
 window {
+    transparency:                "real";
     location:                    center;
     anchor:                      center;
-    fullscreen:                  false;
-    
-    /* Fixed Width for the menu */
-    width:                       300px;
-    
-    /* SHARP CORNERS */
-    border-radius:               0px;
-    
-    background-color:            @bg-col;
-    
-    /* 1px BORDER */
-    border:                      1px;
+    width:                       500px;
+    enabled:                     true;
+    border:                      1px solid;
     border-color:                @border-col;
-    
-    children:                    [ "listview" ];
+    background-color:            @background;
 }
 
-/*****----- Listview -----*****/
+mainbox {
+    enabled:                     true;
+    spacing:                     15px;
+    padding:                     25px;
+    background-color:            transparent;
+    children:                    [ "message", "listview" ];
+}
+
+message {
+    enabled:                     true;
+    background-color:            transparent;
+    text-color:                  @foreground;
+}
+
+textbox {
+    font:                        "JetBrainsMono Nerd Font 15";
+    background-color:            transparent;
+    text-color:                  inherit;
+    vertical-align:              0.5;
+    horizontal-align:            0.5;
+}
+
 listview {
     enabled:                     true;
-    columns:                     1;
-    lines:                       5; /* 5 items */
+    columns:                     5;
+    lines:                       1;
     cycle:                       true;
     dynamic:                     true;
     scrollbar:                   false;
     layout:                      vertical;
-    
-    spacing:                     10px;
-    padding:                     20px;
-    
+    fixed-height:                true;
+    fixed-columns:               true;
+    spacing:                     15px;
     background-color:            transparent;
-    cursor:                      "default";
 }
 
-/*****----- Elements -----*****/
 element {
     enabled:                     true;
-    padding:                     12px;
-    border-radius:               0px;
-    cursor:                      pointer;
+    padding:                     15px 0px;
+    border-radius:               4px;
     background-color:            transparent;
-    text-color:                  @text-col;
-    
-    /* Invisible border to keep alignment */
-    border:                      1px;
-    border-color:                transparent;
+    text-color:                  @foreground;
+    cursor:                      pointer;
 }
 
 element selected.normal {
-    background-color:            @sel-bg;
-    text-color:                  @border-col;
-    
-    /* Sharp 1px Highlight Border */
-    border:                      1px;
+    background-color:            @background-alt;
+    border:                      1px solid;
     border-color:                @border-col;
+    text-color:                  @selected;
 }
 
 element-text {
+    font:                        "JetBrainsMono Nerd Font 24";
     background-color:            transparent;
     text-color:                  inherit;
     cursor:                      inherit;
     vertical-align:              0.5;
-    horizontal-align:            0.0; /* Left Align */
+    horizontal-align:            0.5;
 }
 EOF
 
 # ==============================================================================
-#  LOGIC
+#   LOGIC (Sequence: Shutdown, Logout, Reboot, Lock, Suspend)
 # ==============================================================================
 
-# Feed the options into Rofi
-CHOICE=$(echo -e "$poweroff\n$reboot\n$suspend\n$logout\n$cancel" | rofi -dmenu \
+# Reordered the icons here:
+CHOICE=$(echo -e "$shutdown\n$logout\n$reboot\n$lock\n$suspend" | rofi -dmenu \
     -theme "$TEMP_THEME_FILE" \
+    -mesg "Uptime: $uptime" \
     -p "Power")
 
-# Actions
 case "$CHOICE" in
-  "$logout")
-    hyprctl dispatch exit
-    ;;
-  "$poweroff")
-    systemctl poweroff
-    ;;
-  "$reboot")
-    systemctl reboot
-    ;;
-  "$suspend")
-    # Lock screen logic (checking for hyprlock or swaylock)
-    if command -v hyprlock &> /dev/null; then
-        pidof hyprlock || hyprlock &
-        sleep 1
-    elif command -v swaylock &> /dev/null; then
-        pidof swaylock || swaylock &
-        sleep 1
-    fi
-    systemctl suspend
-    ;;
-  "$cancel")
-    exit 0
-    ;;
-  *)
-    exit 0
-    ;;
+    "$shutdown")
+        systemctl poweroff
+        ;;
+    "$logout")
+        hyprctl dispatch exit
+        ;;        
+    "$reboot")
+        systemctl reboot
+        ;;        
+    "$lock")
+        command -v hyprlock &>/dev/null && hyprlock || swaylock
+        ;;
+    "$suspend")
+        systemctl suspend
+        ;;
 esac
