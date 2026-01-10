@@ -19,7 +19,11 @@
 
         "network",
 
+        "custom/lock",
+
         "custom/power"
+
+        
 
     ],
 
@@ -55,6 +59,13 @@
 
         "on-click": "bash $HOME/.config/hypr/scripts/powermenu.sh"
 
+    },
+
+    "custom/lock": {
+    	"format": "  ",
+    	"tooltip": true,
+    	"tooltip-format": "Lock",
+    	"on-click": "hyprlock"
     },
 
 
