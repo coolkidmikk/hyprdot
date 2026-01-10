@@ -157,7 +157,7 @@ step "Installing Official Packages"
 # Standard Packages (Removed 'mako'/'swaync' from here to add dynamically)
 PKGS=(
     "hyprland" "xorg-server" "xorg-xinit" "wayland-protocols" "hyprpicker" "hyprshot" "waybar" "rofi" "swww" 
-    "kitty" "fastfetch" "nemo" "yazi" "btop" "cava" 
+    "kitty" "fastfetch" "nemo" "yazi" "btop" "cava" "hyprlock"
     "cliphist" "gammastep" "imagemagick" "mpv" "pamixer" 
     "pipewire-alsa" "pipewire-pulse" "networkmanager" "nwg-look"
     "qt6-5compat" "qt6-multimedia-ffmpeg" "qt6-svg" "qt6-virtualkeyboard"
