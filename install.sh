@@ -158,7 +158,7 @@ step "Installing Official Packages"
 PKGS=(
     "hyprland" "xorg-server" "xorg-xinit" "wayland-protocols" "hyprpicker" "hyprshot" "waybar" "rofi" "swww" 
     "kitty" "fastfetch" "nemo" "yazi" "btop" "cava" "hyprlock"
-    "cliphist" "gammastep" "imagemagick" "mpv" "pamixer" 
+    "cliphist" "gammastep" "imagemagick" "mpv" "pamixer" "micro" 
     "pipewire-alsa" "pipewire-pulse" "networkmanager" "nwg-look"
     "qt6-5compat" "qt6-multimedia-ffmpeg" "qt6-svg" "qt6-virtualkeyboard"
     "sddm" "ttf-jetbrains-mono" "ttf-jetbrains-mono-nerd" 
