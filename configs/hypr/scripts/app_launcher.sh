@@ -46,7 +46,7 @@ window {
     fullscreen:                  false;
     
     /* Fixed Size */
-    width:                       500px;
+    width:                       300px;
     height:                      400px;
     
     /* SHARP CORNERS */

@@ -93,7 +93,7 @@ window {
     fullscreen:                  false;
     
     /* Width/Height */
-    width:                       600px;
+    width:                       430px;
     height:                      65%;
     
     /* SHARP CORNERS */
