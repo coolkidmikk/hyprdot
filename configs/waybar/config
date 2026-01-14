@@ -17,7 +17,7 @@
 
         "tray",
 
-        "network",
+        "custom/network",
 
         "custom/lock",
 
@@ -69,14 +69,18 @@
     },
 
 
-"network": {
-    "format-wifi": "  {signalStrength}%",
-    "format-ethernet": "󰈀  Wired",
-    "format-disconnected": "󰖪  No Internet",
-    "tooltip": true,
-    "tooltip-format": "{ifname}\n{ipaddr}\n{essid}",
-    "on-click": "sh -c 'nmcli networking | grep -q \"enabled\" && nmcli networking off || nmcli networking on'"
-},
+"custom/network": {
+        "exec": "$HOME/.config/hypr/scripts/network.sh",
+        "return-type": "json",
+        "format": "{icon} {text}",
+        "format-icons": {
+            "wifi": "",
+            "ethernet": "󰈀",
+            "disconnected": "󰖪"
+        },
+        "interval": 5,
+        "on-click": "sh -c 'nmcli networking | grep -q \"enabled\" && nmcli networking off || nmcli networking on'"
+     },
     
 
     "tray": {
